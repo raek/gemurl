@@ -80,6 +80,19 @@ def host_port_pair_from_url(normalized_url):
     return u.hostname, (u.port or DEFAULT_PORT)
 
 
+def capsule_prefix(normalized_url):
+    """Return the prefix of the URL that identifies the capsule"""
+    u = urlsplit(normalized_url)
+    path_segments = u.path[1:].split("/")
+    if path_segments[0].startswith("~"):
+        path = "/" + path_segments[0] + "/"
+    elif path_segments[0] == "users":
+        path = "/users/" + path_segments[1] + "/"
+    else:
+        path = "/"
+    return urlunsplit((u.scheme, u.netloc, path, None, None))
+
+
 def main():
     import argparse
     import sys
@@ -87,9 +100,17 @@ def main():
     subparsers = parser.add_subparsers(title="subcommands", dest="command")
     normalize_parser = subparsers.add_parser("normalize")
     normalize_parser.add_argument("url")
+    capsule_parser = subparsers.add_parser("capsule")
+    capsule_parser.add_argument("url")
     args = parser.parse_args()
-    if args.command == "normalize":
-        print(normalize_url(args.url))
-    elif args.command is None:
-        print("No subcommand given")
+    try:
+        if args.command == "normalize":
+            print(normalize_url(args.url))
+        elif args.command == "capsule":
+            print(capsule_prefix(normalize_url(args.url)))
+        elif args.command is None:
+            print("No subcommand given")
+            sys.exit(1)
+    except GemurlError as e:
+        print("Error:", *e.args)
         sys.exit(1)

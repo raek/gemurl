@@ -1,6 +1,6 @@
 import pytest
 
-from gemurl import normalize_url, host_port_pair_from_url, NormalizationError, NonGeminiUrlError
+from gemurl import normalize_url, host_port_pair_from_url, capsule_prefix, NormalizationError, NonGeminiUrlError
 
 
 # References
@@ -192,3 +192,19 @@ def test_host_port_pair_no_port():
 
 def test_host_port_pair_with_port():
     assert host_port_pair_from_url("gemini://example.com:5691/") == ("example.com", 5691)
+
+
+def test_typical_capsule():
+    assert capsule_prefix("gemini://example.com/some/path?query#fragment") == "gemini://example.com/"
+
+
+def test_non_standard_port_capsule():
+    assert capsule_prefix("gemini://example.com:5691/some/path?query#fragment") == "gemini://example.com:5691/"
+
+
+def test_tilde_capsule():
+    assert capsule_prefix("gemini://example.com/~name/some/path?query#fragment") == "gemini://example.com/~name/"
+
+
+def test_users_dir_capsule():
+    assert capsule_prefix("gemini://example.com/users/name/some/path?query#fragment") == "gemini://example.com/users/name/"
